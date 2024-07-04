@@ -94,6 +94,6 @@ func MakeStandardErrorReply(Status string) *StandardErrorReply {
 	return &StandardErrorReply{Status: Status}
 }
 
-func isErrorReply(reply resp.Reply) bool {
+func IsErrorReply(reply resp.Reply) bool {
 	return reply.ToBytes()[0] == '-'
 }

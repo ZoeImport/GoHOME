@@ -3,6 +3,8 @@ package handler
 import (
 	"context"
 	"errors"
+	"go-redis/cluster"
+	"go-redis/config"
 	"go-redis/database"
 	dataBaseface "go-redis/interface/database"
 	"go-redis/lib/logger"
@@ -27,10 +29,14 @@ type RespHandler struct {
 }
 
 func MakeHandler() *RespHandler {
-	var db dataBaseface.Database
-	db = database.NewDatabase()
+	var db1 dataBaseface.Database
+	if config.Properties.Self != "" && len(config.Properties.Peers) > 0 {
+		db1 = cluster.MakeNewClusterDatabase()
+	} else {
+		db1 = database.NewStandAloneDatabase()
+	}
 	return &RespHandler{
-		db: db,
+		db: db1,
 	}
 }
 
@@ -75,9 +81,9 @@ func (r *RespHandler) Handle(ctx context.Context, conn net.Conn) {
 		}
 		result := r.db.Exec(client, bulkReply.Args)
 		if result != nil {
-			client.Write(result.ToBytes())
+			_ = client.Write(result.ToBytes())
 		} else {
-			client.Write(unKnownErrReplyBytes)
+			_ = client.Write(unKnownErrReplyBytes)
 		}
 	}
 }

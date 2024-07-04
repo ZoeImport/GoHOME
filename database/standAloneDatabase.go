@@ -1,6 +1,7 @@
 package database
 
 import (
+	"go-redis/aof"
 	"go-redis/config"
 	"go-redis/interface/resp"
 	"go-redis/lib/logger"
@@ -9,25 +10,40 @@ import (
 	"strings"
 )
 
-type Database struct {
-	dbSet []*DB
+type StandAloneDatabase struct {
+	dbSet      []*DB
+	aofHandler *aof.AofHandler
 }
 
-func NewDatabase() *Database {
-	database := &Database{}
+func NewStandAloneDatabase() *StandAloneDatabase {
+	database := &StandAloneDatabase{}
 	if config.Properties.Databases == 0 {
 		config.Properties.Databases = 16
 	}
 	database.dbSet = make([]*DB, config.Properties.Databases)
+	//init dbSet
 	for i := range database.dbSet {
 		db := MakeDB()
 		db.index = i
 		database.dbSet[i] = db
 	}
+
+	if config.Properties.AppendOnly {
+		handler, err := aof.NewAofHandler(database)
+		if err != nil {
+			panic(err)
+		}
+		database.aofHandler = handler
+		for _, db := range database.dbSet {
+			db.addAof = func(line CmdLine) {
+				database.aofHandler.AddAof(db.index, line)
+			}
+		}
+	}
 	return database
 }
 
-func (database *Database) Exec(client resp.Connection, args [][]byte) resp.Reply {
+func (database *StandAloneDatabase) Exec(client resp.Connection, args [][]byte) resp.Reply {
 	defer func() {
 		if err := recover(); err != nil {
 			logger.Error(err)
@@ -47,15 +63,15 @@ func (database *Database) Exec(client resp.Connection, args [][]byte) resp.Reply
 
 }
 
-func (database *Database) Close() {
+func (database *StandAloneDatabase) Close() {
 
 }
 
-func (database *Database) AfterClientClose(client resp.Connection) {
+func (database *StandAloneDatabase) AfterClientClose(client resp.Connection) {
 
 }
 
-func execSelect(c resp.Connection, database *Database, args [][]byte) resp.Reply {
+func execSelect(c resp.Connection, database *StandAloneDatabase, args [][]byte) resp.Reply {
 	dbIndex, err := strconv.Atoi(string(args[0]))
 	if err != nil {
 		return reply.MakeStandardErrorReply("ERR invalid DB index")
