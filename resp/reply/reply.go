@@ -48,10 +48,6 @@ func MakeMultiBulkReply(args [][]byte) *MultiBulkReply {
 	return &MultiBulkReply{Args: args}
 }
 
-type StatusReply struct {
-	Status string
-}
-
 type IntReply struct {
 	Code int64
 }
@@ -59,6 +55,14 @@ type IntReply struct {
 func (i *IntReply) ToBytes() []byte {
 	return []byte(":" + strconv.FormatInt(i.Code, 10) + CRLF)
 
+}
+
+func MakeIntReply(code int64) *IntReply {
+	return &IntReply{Code: code}
+}
+
+type StatusReply struct {
+	Status string
 }
 
 func (s *StatusReply) ToBytes() []byte {

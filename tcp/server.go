@@ -22,7 +22,7 @@ func ListenAndServerWithSignal(cfg *Config, handler tcp.Handler) error {
 	}
 
 	closeChan := make(chan struct{})
-	signalsChan := make(chan os.Signal)
+	signalsChan := make(chan os.Signal, 1)
 	signal.Notify(signalsChan, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP, syscall.SIGQUIT)
 	go func() {
 		sig := <-signalsChan

@@ -30,17 +30,17 @@ func (r *OkReply) ToBytes() []byte {
 	return okBytes
 }
 
-type NullBulkBytes struct {
+type NullBulkReply struct {
 }
 
 var nullBulkBytes = []byte("$-1\r\n")
-var theNullBulkBytes = new(NullBulkBytes)
+var theNullBulkBytes = new(NullBulkReply)
 
-func MakeNullBulkBytes() *NullBulkBytes {
+func MakeNullBulkReply() *NullBulkReply {
 	return theNullBulkBytes
 }
 
-func (n *NullBulkBytes) ToBytes() []byte {
+func (n *NullBulkReply) ToBytes() []byte {
 	return nullBulkBytes
 }
 
@@ -62,6 +62,7 @@ type NoReply struct {
 }
 
 var noBytes = []byte("")
+
 var theNoReply = new(NoReply)
 
 func MakeNoReply() *NoReply {
