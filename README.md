@@ -1,6 +1,6 @@
 # GoHOME
 
-**checkout to any other branch to view project**
+**See Root of main to view project**
 
 ## Project List
 
